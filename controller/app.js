@@ -1,7 +1,9 @@
-const e = require('express');
-const express = require('express')
+const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 const actor = require('../model/actor.js');
+
+app.use(bodyParser.json());
 
 // Endpoint 1
 app.get('/actors/:actorid', (req,res)=> {
@@ -77,6 +79,52 @@ app.post('/actors',(req,res)=> {
             - strings (regex)
             - not null and not undefined
     */
+
+    // Case 2 missing data
+    // If body does not contain both first name and last name
+    // Object.keys(obj) returns the key of obj as an array
+    const keys = Object.keys(req.body);
+    if (keys.length<2 || !keys.includes('first_name') || !keys.includes('last_name')) {
+        res.status(400);
+        res.type('json');
+        res.send(`{"error_msg": "missing data"}`);
+    }
+
+    const {first_name,last_name} = req.body;
+
+    
+    // check if first_name and last_name are alphabets and not numerical 
+    // or special characters
+
+    /*
+        +: One or more characters (from)
+        ^: Start of string (to)
+        $: End of String
+        [a-zA-Z]: matching from A-Z
+    */
+
+    // Special case
+    if (!(/^[a-zA-Z]+$/.test(first_name)) || !(/^[a-zA-Z]+$/.test(last_name))) {
+        res.status(400);
+        res.type('json');
+        res.send(`{"error_msg": "Invalid Name"}`);
+    }
+
+    // Since previously, the dates are stored in ISO 8061, we should use the same format
+    const date = new Date();
+    actor.insertActor(first_name,last_name,date, (err,result) => {
+        // case 1 successful
+        if (!err) {
+            res.status(200);
+            res.type('application/json');
+            res.send(`{"actor_id": "${result.insertId}"}`);
+            // case 2 server error  
+        } else {
+            res.status(500);
+            res.type('application/json');
+            res.send(`{"error_msg":"Internal server error"}`);
+        }
+    });
 
 });
 

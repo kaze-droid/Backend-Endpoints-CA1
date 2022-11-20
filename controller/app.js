@@ -14,7 +14,7 @@ app.get('/actors/:actorid', (req,res)=> {
             if (result.length==1) {
                 res.status(200);
                 res.type('application/json');
-                res.send(result);
+                res.send(result[0]);
                 // case 2 (if there is no actor with that id)
             } else {
                 res.status(204);
@@ -88,6 +88,7 @@ app.post('/actors',(req,res)=> {
         res.status(400);
         res.type('json');
         res.send(`{"error_msg": "missing data"}`);
+        return;
     }
 
     const {first_name,last_name} = req.body;
@@ -106,16 +107,16 @@ app.post('/actors',(req,res)=> {
     // Special case
     if (!(/^[a-zA-Z]+$/.test(first_name)) || !(/^[a-zA-Z]+$/.test(last_name))) {
         res.status(400);
-        res.type('json');
-        res.send(`{"error_msg": "Invalid Name"}`);
+        res.type('application/json');
+        res.send(`{"error_msg": "missing data"}`);
+        return;
     }
 
-    // Since previously, the dates are stored in ISO 8061, we should use the same format
     const date = new Date();
     actor.insertActor(first_name,last_name,date, (err,result) => {
         // case 1 successful
         if (!err) {
-            res.status(200);
+            res.status(201);
             res.type('application/json');
             res.send(`{"actor_id": "${result.insertId}"}`);
             // case 2 server error  
@@ -125,7 +126,49 @@ app.post('/actors',(req,res)=> {
             res.send(`{"error_msg":"Internal server error"}`);
         }
     });
+});
 
+// Endpoint 4
+app.put('/actors/:actorid',(req,res)=> {
+    const id = req.params.actorid;
+    const {first_name,last_name} = req.body;
+    // change date updated
+    const date = new Date();
+
+    // Case 3 missing data (both are undefined)
+    if (first_name==null&&last_name==null) {
+        res.status(400);
+        res.type('application/json');
+        res.send(`{"error_msg": "missing data"}`);
+    } else {
+        // Special case (make sure name does not contain numbers)
+        if (!(/^[a-zA-Z]+$/.test(first_name)) || !(/^[a-zA-Z]+$/.test(last_name))) {
+            res.status(400);
+            res.type('application/json');
+            res.send(`{"error_msg": "missing data"}`);
+            return;
+        } else {
+            actor.updateActor(first_name,last_name,date,id, (err,result)=> {
+                // case 1 (successful)
+                if (!err) {
+                    if (result.affectedRows==1) {
+                        res.status(200);
+                        res.type('application/json');
+                        res.send(`{"success_msg": "record updated"}`);
+                    } else {
+                        res.status(204);
+                        res.type('application/json');
+                        res.send('No content. Record of given actor_id cannot be found.')
+                    }
+                // case 4 (server error)
+                } else {
+                    res.status(500);
+                    res.type('application/json');
+                    res.send(`{"error_msg":"Internal server error"}`);
+                }
+            });
+        }
+    }
 });
 
 module.exports = app;

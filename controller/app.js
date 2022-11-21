@@ -74,58 +74,30 @@ app.get('/actors', (req,res) => {
 
 // Endpoint 3
 app.post('/actors',(req,res)=> {
-    /*
-        Check if first_name and last_name are:
-            - strings (regex)
-            - not null and not undefined
-    */
-
-    // Case 2 missing data
-    // If body does not contain both first name and last name
-    // Object.keys(obj) returns the key of obj as an array
-    const keys = Object.keys(req.body);
-    if (keys.length<2 || !keys.includes('first_name') || !keys.includes('last_name')) {
-        res.status(400);
-        res.type('json');
-        res.send(`{"error_msg": "missing data"}`);
-        return;
-    }
 
     const {first_name,last_name} = req.body;
+    const date = new Date();
 
-    
-    // check if first_name and last_name are alphabets and not numerical 
-    // or special characters
-
-    /*
-        +: One or more characters (from)
-        ^: Start of string (to)
-        $: End of String
-        [a-zA-Z]: matching from A-Z
-    */
-
-    // Special case
-    if (!(/^[a-zA-Z]+$/.test(first_name)) || !(/^[a-zA-Z]+$/.test(last_name))) {
+    // Case 2 missing data
+    if (first_name==null||last_name==null) {
         res.status(400);
         res.type('application/json');
         res.send(`{"error_msg": "missing data"}`);
-        return;
+    } else {
+        actor.insertActor(first_name,last_name,date, (err,result) => {
+            // case 1 successful
+            if (!err) {
+                res.status(201);
+                res.type('application/json');
+                res.send(`{"actor_id": "${result.insertId}"}`);
+                // case 2 server error  
+            } else {
+                res.status(500);
+                res.type('application/json');
+                res.send(`{"error_msg":"Internal server error"}`);
+            }
+        });
     }
-
-    const date = new Date();
-    actor.insertActor(first_name,last_name,date, (err,result) => {
-        // case 1 successful
-        if (!err) {
-            res.status(201);
-            res.type('application/json');
-            res.send(`{"actor_id": "${result.insertId}"}`);
-            // case 2 server error  
-        } else {
-            res.status(500);
-            res.type('application/json');
-            res.send(`{"error_msg":"Internal server error"}`);
-        }
-    });
 });
 
 // Endpoint 4
@@ -135,40 +107,54 @@ app.put('/actors/:actorid',(req,res)=> {
     // change date updated
     const date = new Date();
 
-    // Case 3 missing data (both are undefined)
-    if (first_name==null&&last_name==null) {
+    // Case 2 missing data (both are undefined)
+    if (first_name==null||last_name==null) {
         res.status(400);
         res.type('application/json');
         res.send(`{"error_msg": "missing data"}`);
     } else {
-        // Special case (make sure name does not contain numbers)
-        if (!(/^[a-zA-Z]+$/.test(first_name)) || !(/^[a-zA-Z]+$/.test(last_name))) {
-            res.status(400);
-            res.type('application/json');
-            res.send(`{"error_msg": "missing data"}`);
-            return;
-        } else {
-            actor.updateActor(first_name,last_name,date,id, (err,result)=> {
-                // case 1 (successful)
-                if (!err) {
-                    if (result.affectedRows==1) {
-                        res.status(200);
-                        res.type('application/json');
-                        res.send(`{"success_msg": "record updated"}`);
-                    } else {
-                        res.status(204);
-                        res.type('application/json');
-                        res.send('No content. Record of given actor_id cannot be found.')
-                    }
-                // case 4 (server error)
-                } else {
-                    res.status(500);
+        actor.updateActor(first_name,last_name,date,id, (err,result)=> {
+            // case 1 (successful)
+            if (!err) {
+                if (result.affectedRows==1) {
+                    res.status(200);
                     res.type('application/json');
-                    res.send(`{"error_msg":"Internal server error"}`);
+                    res.send(`{"success_msg": "record updated"}`);
+                } else {
+                    res.status(204);
+                    res.type('application/json');
+                    res.send('No content. Record of given actor_id cannot be found.')
                 }
-            });
-        }
+            // case 3 (server error)
+            } else {
+                res.status(500);
+                res.type('application/json');
+                res.send(`{"error_msg":"Internal server error"}`);
+            }
+        });
     }
+});
+
+// Endpoint 5
+app.delete('/actors/:actorid', (req,res)=> {
+    const id = req.params.actorid;
+    actor.deleteActor(id, (err,result)=> {
+        if (!err) {
+            if (result.affectedRows==1) {
+                res.status(200);
+                res.type('application/json');
+                res.send(`{"success_msg": "record updated"}`);
+            } else {
+                res.status(204);
+                res.type('application/json');
+                res.send('No content. Record of given actor_id cannot be found.')
+            }
+        } else {
+            res.status(500);
+            res.type('application/json');
+            res.send(`{"error_msg":"Internal server error"}`);
+        }
+    });
 });
 
 module.exports = app;

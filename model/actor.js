@@ -86,6 +86,28 @@ const actorsDB = {
                 })
             }
         });
+    },
+    // Endpoint 5
+    deleteActor: (id, callback) => {
+        const conn = db.getConnection();
+        conn.connect((err)=> {
+            if (err) {
+                console.error(err);
+                return callback(err,null);
+            } else {
+                const sql = 'DELETE FROM actor WHERE actor_id = ?;'
+                conn.query(sql,[id],(err,res)=> {
+                    conn.end();
+                    if (err) {
+                        console.error(err);
+                        return callback(err,null);
+                    } else {
+                        return callback(null,res);
+                    }
+                })
+            }
+        });
+
     }
 }
 

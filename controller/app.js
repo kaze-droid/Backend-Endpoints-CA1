@@ -76,7 +76,6 @@ app.get('/actors', (req,res) => {
 app.post('/actors',(req,res)=> {
 
     const {first_name,last_name} = req.body;
-    const date = new Date();
 
     // Case 2 missing data
     if (first_name==null||last_name==null) {
@@ -84,7 +83,7 @@ app.post('/actors',(req,res)=> {
         res.type('application/json');
         res.send(`{"error_msg": "missing data"}`);
     } else {
-        actor.insertActor(first_name,last_name,date, (err,result) => {
+        actor.insertActor(first_name,last_name, (err,result) => {
             // case 1 successful
             if (!err) {
                 res.status(201);
@@ -104,8 +103,6 @@ app.post('/actors',(req,res)=> {
 app.put('/actors/:actorid',(req,res)=> {
     const id = req.params.actorid;
     const {first_name,last_name} = req.body;
-    // change date updated
-    const date = new Date();
 
     // Case 2 missing data (both are undefined)
     if (first_name==null||last_name==null) {
@@ -113,7 +110,7 @@ app.put('/actors/:actorid',(req,res)=> {
         res.type('application/json');
         res.send(`{"error_msg": "missing data"}`);
     } else {
-        actor.updateActor(first_name,last_name,date,id, (err,result)=> {
+        actor.updateActor(first_name,last_name,id, (err,result)=> {
             // case 1 (successful)
             if (!err) {
                 if (result.affectedRows==1) {
@@ -156,5 +153,8 @@ app.delete('/actors/:actorid', (req,res)=> {
         }
     });
 });
+
+// Endpoint 6
+
 
 module.exports = app;

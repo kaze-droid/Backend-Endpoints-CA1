@@ -44,15 +44,15 @@ const actorsDB = {
         });
     },
     // Endpoint 3
-    insertActor: (firstname, lastname, last_update, callback) => {
+    insertActor: (firstname, lastname, callback) => {
         const conn = db.getConnection();
         conn.connect((err)=> {
             if (err) {
                 console.error(err);
                 return callback(err,null);
             } else {
-                const sql = 'INSERT INTO actor (first_name, last_name, last_update) VALUES (?,?,?);';
-                conn.query(sql,[firstname,lastname, last_update],(err,res)=> {
+                const sql = 'INSERT INTO actor (first_name, last_name) VALUES (?,?);';
+                conn.query(sql,[firstname,lastname],(err,res)=> {
                     conn.end();
                     if (err) {
                         console.error(err);
@@ -65,16 +65,16 @@ const actorsDB = {
         });
     },
     // Endpoint 4
-    updateActor: (firstname, lastname, last_update, id, callback) => {
+    updateActor: (firstname, lastname, id, callback) => {
         const conn = db.getConnection();
         conn.connect((err)=> {
             if (err) {
                 console.error(err);
                 return callback(err,null);
             } else {
-                const [sql,param] = (firstname && lastname) ? ['UPDATE actor SET first_name = ?, last_name = ?, last_update = ? WHERE actor_id = ?;', [firstname,lastname,last_update,id]] : 
-                (firstname ? ['UPDATE actor SET first_name = ?, last_update = ? WHERE actor_id = ?;', [firstname,last_update,id]] : 
-                (lastname ? ['UPDATE actor SET last_name = ?, last_update = ? WHERE actor_id = ?;',[lastname,last_update,id]]: ''));
+                const [sql,param] = (firstname && lastname) ? ['UPDATE actor SET first_name = ?, last_name = ? WHERE actor_id = ?;', [firstname,lastname,id]] : 
+                (firstname ? ['UPDATE actor SET first_name = ? WHERE actor_id = ?;', [firstname,id]] : 
+                (lastname ? ['UPDATE actor SET last_name = ? WHERE actor_id = ?;',[lastname,id]]: ''));
                 conn.query(sql,param,(err,res)=> {
                     conn.end();
                     if (err) {

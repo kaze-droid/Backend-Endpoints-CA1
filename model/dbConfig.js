@@ -8,8 +8,8 @@ const dbConnect = {
             password: 'pa$$woRD123',
             database: 'bed_dvd_db'
         });
-        return conn
+        return conn;
     }
 };
 
-module.exports = dbConnect
+module.exports = dbConnect;

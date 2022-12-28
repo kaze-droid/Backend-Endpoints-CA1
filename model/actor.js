@@ -1,4 +1,4 @@
-const dbConnect = require('./dbConfig.js');
+const e = require('express');
 const db = require('./dbConfig.js');
 
 const actorsDB = {
@@ -73,9 +73,20 @@ const actorsDB = {
                 console.error(err);
                 return callback(err,null);
             } else {
-                const [sql,param] = (firstname && lastname) ? ['UPDATE actor SET first_name = ?, last_name = ? WHERE actor_id = ?;', [firstname,lastname,id]] : 
-                (firstname ? ['UPDATE actor SET first_name = ? WHERE actor_id = ?;', [firstname,id]] : 
-                (lastname ? ['UPDATE actor SET last_name = ? WHERE actor_id = ?;',[lastname,id]]: ''));
+                let sql,param;
+                // If both are defined
+                if (firstname && lastname) {
+                    sql = `UPDATE actor SET first_name = ?, last_name = ? WHERE actor_id = ?;`;
+                    param = [firstname,lastname,id];
+                // If only firstname is defined
+                } else if (firstname) {
+                    sql = `UPDATE actor SET first_name = ? WHERE actor_id = ?;`;
+                    param = [firstname,id];
+                // If only lastname is defined
+                } else if (lastname) {
+                    sql = `UPDATE actor SET last_name = ? WHERE actor_id = ?;`;
+                    param = [lastname,id];
+                }
                 conn.query(sql,param,(err,res)=> {
                     conn.end();
                     if (err) {
@@ -96,7 +107,7 @@ const actorsDB = {
                 console.error(err);
                 return callback(err,null);
             } else {
-                const sql = 'DELETE FROM actor WHERE actor_id = ?;'
+                const sql = 'DELETE FROM actor WHERE actor_id = ?;';
                 conn.query(sql,[id],(err,res)=> {
                     conn.end();
                     if (err) {

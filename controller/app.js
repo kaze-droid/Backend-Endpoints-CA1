@@ -1,3 +1,9 @@
+/*
+Name: Ryan Yeo
+Class: DAAA/FT/1B/01
+Admin Number: P2214452
+*/
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
@@ -11,18 +17,18 @@ app.use(bodyParser.json());
 app.get('/actors/:actor_id', (req,res)=> {
     const actor_id = req.params.actor_id;
     actor.getActor(actor_id, (err,result)=> {
-        // Server Error
+        // Server Error (500)
         if (err) {
             res.status(500);
             res.type('application/json');
             res.send(`{"error_msg":"Internal server error"}`);
         } else {
-            // Successful case
+            // Successful Case (200)
             if (result.length==1) {
                 res.status(200);
                 res.type('application/json');
                 res.send(result[0]);
-                // If there is no actor with that ID
+            // Record of given actor_id cannot be found (204)
             } else {
                 res.status(204);
                 res.type('application/json');
@@ -36,28 +42,28 @@ app.get('/actors/:actor_id', (req,res)=> {
 app.get('/actors', (req,res) => {
     let limit, offset;
 
-    // If they never key in limit or if limit is not a number, we use default value of 20
+    // If not provided default to 20 (includes if a non numerical value is keyed in or if a negative number is keyed in)
     if (req.query.limit == null || (isNaN(req.query.limit)) || (parseInt(req.query.offset)<0)) {
         limit = 20;
     } else {
-        // even if they key in float just return an int
+        // Else use the provided value
         limit = parseInt(req.query.limit);
     }
-    // If they never key in offset or if offset is not a positive number, we use default value of 0
+    // If not provided default to 0 (includes if a non numerical value is keyed in or if a negative number is keyed in)
     if (req.query.offset == null || isNaN(req.query.offset) || (parseInt(req.query.offset)<0)) {
         offset = 0;
     } else {
-        // even if they key in float just return an int
+        // Else use the provided value
         offset = parseInt(req.query.offset); 
     }
     
     actor.listActors(limit,offset, (err,result) => {
-        // Server Error
+        // Server Error (500)
         if (err) {
             res.status(500);
             res.type('application/json');
             res.send(`{"error_msg":"Internal server error"}`);
-            // Successful
+        // Successful Case (200)
         } else {
             res.status(200);
             res.type('application/json');
@@ -71,15 +77,13 @@ app.post('/actors',(req,res)=> {
     const {first_name,last_name} = req.body;
 
     /*
-        If both key missing, return missing data
-        If one key missing, update only that key
-        If both key present update both key
-
+        If either key is missing return missing data
         If keys are present but missing value ("") still update key
+        It is possible for both keys to have the same value
     */
 
-    // If either key is missing
-    if (first_name==null||last_name==null) {
+    // If either key is missing (400)
+    if (first_name==null || last_name==null) {
         res.status(400);
         res.type('application/json');
         res.send(`{"error_msg": "missing data"}`);
@@ -88,12 +92,12 @@ app.post('/actors',(req,res)=> {
     }
 
     actor.insertActor(first_name,last_name, (err,result) => {
-        // Server Error 
+        // Server Error (500)
         if (err) {
             res.status(500);
             res.type('application/json');
             res.send(`{"error_msg":"Internal server error"}`);
-            // Successful Case
+        // Successful Case (201)
         } else {
             res.status(201);
             res.type('application/json');
@@ -109,13 +113,13 @@ app.put('/actors/:actor_id',(req,res)=> {
 
     /*
         If both key missing, return missing data
-        If one key missing, update only that key
+        If one key missing, update only the other key that is provided
         If both key present update both key
 
         If keys are present but missing value ("") still update key
     */
 
-    // Missing key (both are undefined)
+    // Both keys are missing (400)
     if (first_name==null && last_name==null) {
         res.status(400);
         res.type('application/json');
@@ -124,18 +128,18 @@ app.put('/actors/:actor_id',(req,res)=> {
     }
 
     actor.updateActor(first_name,last_name,id, (err,result)=> {
-        // Server Error
+        // Server Error (500)
         if (err) {
             res.status(500);
             res.type('application/json');
             res.send(`{"error_msg":"Internal server error"}`);
         } else {
-            // Successful Case
+            // Successful Case (200)
             if (result.affectedRows==1) {
                 res.status(200);
                 res.type('application/json');
                 res.send(`{"success_msg": "record updated"}`);
-            // Nothing gets updated
+            // Record of given actor_id cannot be found (204)
             } else {
                 res.status(204);
                 res.type('application/json');
@@ -149,18 +153,18 @@ app.put('/actors/:actor_id',(req,res)=> {
 app.delete('/actors/:actor_id', (req,res)=> {
     const id = req.params.actor_id;
     actor.deleteActor(id, (err,result)=> {
-        // Server Error
+        // Server Error (500)
         if (err) {
             res.status(500);
             res.type('application/json');
             res.send(`{"error_msg":"Internal server error"}`);
         } else {
-            // Successful Case
+            // Successful Case (200)
             if (result.affectedRows==1) {
                 res.status(200);
                 res.type('application/json');
                 res.send(`{"success_msg": "record updated"}`);
-            // Nothing gets deleted
+            // Record of given actor_id cannot be found (204)
             } else {
                 res.status(204);
                 res.type('application/json');
@@ -174,12 +178,12 @@ app.delete('/actors/:actor_id', (req,res)=> {
 app.get('/film_categories/:category_id/films', (req,res) => {
     const id = req.params.category_id;
     actor.getFilmByCategory(id, (err,result)=> {
-        // Server Error
+        // Server Error (500)
         if (err) {
             res.status(500);
             res.type('application/json');
             res.send(`{"error_msg":"Internal server error"}`);
-        // Successful Case
+        // Successful Case (200)
         } else {
             res.status(200);
             res.type('application/json');
@@ -190,31 +194,20 @@ app.get('/film_categories/:category_id/films', (req,res) => {
 
 // Endpoint 7
 app.get('/customer/:customer_id/payment', (req,res) => {
+    // If either start date or end date is not specified, give all records
     const id = req.params.customer_id;
-    let start_date,end_date;
+    const {start_date,end_date} = req.query;
     let total=0;
 
-    // If either start date or end date is not specified
-    if (req.query.start_date == null || req.query.end_date == null) {
-        res.status(200);
-        res.type('application/json');
-        res.send(`{"rental": [],
-                    "total": ${total}}`);
-        return;
-    } else {
-        start_date = req.query.start_date;
-        end_date = req.query.end_date;
-    }
-
     actor.getPaymentBtwnDates(id,start_date,end_date, (err,result)=> {
-        // Server Error
+        // Server Error (500)
         if (err) {
             res.status(500);
             res.type('application/json');
             res.send(`{"error_msg":"Internal server error"}`);
-        // Successful Case
+        // Successful Case (200)
         } else {
-            // Get total by iterating through object array
+            // Get total by iterating through the array of objects
             for (amt of result) {
                 total+=amt.amount;
             }
@@ -229,13 +222,13 @@ app.get('/customer/:customer_id/payment', (req,res) => {
 // Endpoint 8
 app.post('/customers',(req,res)=> {
     const {store_id, first_name, last_name, email, address} = req.body;
-    // If either key is missing
+    // If either key is missing (400)
     if (store_id==null || first_name==null || last_name==null || email==null || address==null) {
         res.status(400);
         res.type('application/json');
         res.send(`{"error_msg": "missing data"}`);
         return;
-    // If either sub-key (key for address) is missing
+    // If either sub-key (key for address) is missing (400)
     } else if (address.address_line1==null || address.address_line2==null || address.district==null || address.city_id==null || address.postal_code==null || address.phone==null) {
         res.status(400);
         res.type('application/json');
@@ -244,17 +237,18 @@ app.post('/customers',(req,res)=> {
     } else {
         actor.insertCustomer(store_id,first_name,last_name,email,address, (err,result)=> {
             if (err) {
-                // Duplicate Entry
+                // User tries to create a record with duplicate email address (409)
                 if (err.code=='ER_DUP_ENTRY') {
                     res.status(409);
                     res.type('application/json');
                     res.send(`{"error_msg":"email already exist"}`);
-                // Server Error
+                // Server Error (500)
                 } else {
                     res.status(500);
                     res.type('application/json');
                     res.send(`{"error_msg":"Internal server error"}`);
                 }
+            // Successful Case (201)
             } else {
                 res.status(201);
                 res.type('application/json');

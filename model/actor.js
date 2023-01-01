@@ -236,6 +236,87 @@ const actorsDB = {
                 });
             }
         });
+    },
+    // Additional Endpoint 1
+    insertStaff: (first_name,last_name,email,store_id,username,password,address, callback) => {
+        const conn = db.getConnection();
+        conn.connect((err) => {
+            if (err) {
+                console.log(err);
+                return callback(err,null);
+            } else {
+                const {address_line1,address_line2,district,city_id,postal_code,phone} = address;
+                // Check if username is already taken
+                const sql1 = `SELECT * FROM staff WHERE username = ?;`;
+                conn.query(sql1,[username],(err1,res1) => {
+                    if (err1) {
+                        console.log(err1);
+                        return callback(err1,null);
+                    } else {
+                        // Return the error "Usename already taken"
+                        if (res1.length > 0) {
+                            return callback("ER_DUP_ENTRY",null);
+                        } else {
+                            const sql2 = 
+                            `INSERT into address(address,address2,district,city_id,postal_code,phone)
+                            VALUES (?,?,?,?,?,?);`;
+                            conn.query(sql2,[address_line1,address_line2,district,city_id,postal_code,phone], (err2,res2)=> {
+                                if (err2) {
+                                    console.log(err2);
+                                    return callback(err2,null);
+                                } else {
+                                    const address_id = res2.insertId;
+                                    const sql3 = `INSERT INTO staff(first_name,last_name,address_id,email,store_id,username,password)
+                                    VALUES (?,?,?,?,?,?,?);`;
+                                    conn.query(sql3,[first_name,last_name,address_id,email,store_id,username,password],(err3,res3) => {
+                                        conn.end();
+                                        if (err3) {
+                                            console.log(err3);
+                                            return callback(err3,null);
+                                        } else {
+                                            return callback(null,res3)
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    },
+    // Additional Endpoint 2
+    updateCategory: (film_id,category,callback) => {
+        const conn = db.getConnection();
+        conn.connect((err) => {
+            if (err) {
+                console.log(err);
+                return callback(err,null);
+            } else {
+                // Get category_id from category
+                const sql1 = `SELECT category_id FROM category WHERE name = ?;`;
+                conn.query(sql1,[category],(err1,res1) => {
+                    if (err1) {
+                        console.log(err1);
+                        return callback(err1,null);
+                    } else if (res1.length==0) {
+                        return callback("Category does not exist",null);
+                    } else {
+                        const category_id = res1[0].category_id;
+                        const sql2 = `UPDATE film_category SET category_id = ? WHERE film_id = ?;`;
+                        conn.query(sql2,[category_id,film_id],(err2,res2) => {
+                            conn.end();
+                            if (err2) {
+                                console.log(err2);
+                                return callback(err2,null);
+                            } else {
+                                return callback(null,res2);
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 }
 

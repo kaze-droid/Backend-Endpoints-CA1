@@ -163,7 +163,7 @@ app.delete('/actors/:actor_id', (req,res)=> {
             if (result.affectedRows==1) {
                 res.status(200);
                 res.type('application/json');
-                res.send(`{"success_msg": "record updated"}`);
+                res.send(`{"success_msg": "actor deleted"}`);
             // Record of given actor_id cannot be found (204)
             } else {
                 res.status(204);
@@ -256,6 +256,87 @@ app.post('/customers',(req,res)=> {
             }
         });
     }
+});
+
+// Additional Endpoint 1
+app.post("/staff", (req, res) => {
+    const {first_name, last_name, email, store_id, username, password, address} = req.body;
+    // If either key is missing (400)
+    if (first_name==null || last_name==null || email==null || store_id==null || username==null || password==null || address==null) {
+        res.status(400);
+        res.type('application/json');
+        res.send(`{"error_msg": "missing data"}`);
+        return;
+    // If either sub-key (key for address) is missing (400)
+    } else if (address.address_line1==null || address.address_line2==null || address.district==null || address.city_id==null || address.postal_code==null || address.phone==null) {
+        res.status(400);
+        res.type('application/json');
+        res.send(`{"error_msg": "missing data"}`);
+        return;
+    } else {
+        actor.insertStaff(first_name,last_name,email,store_id,username,password,address, (err,result)=> {
+            if (err) {
+                // User tries to create a record with duplicate username (409)
+                if (err=='ER_DUP_ENTRY') {
+                    res.status(409);
+                    res.type('application/json');
+                    res.send(`{"error_msg":"username already exist"}`);
+                // Server Error (500)
+                } else {
+                    res.status(500);
+                    res.type('application/json');
+                    res.send(`{"error_msg":"Internal server error"}`);
+                }
+            } else {
+                res.status(201);
+                res.type('application/json');
+                res.send(`{"staff_id":"${result.insertId}"}`);
+            }
+        });
+    }
+});
+
+// Additional Endpoint 2
+app.put("/film/:film_id/category", (req, res) => {
+    const id = req.params.film_id;
+    const {category} = req.body;
+
+    // If key is missing (400)
+    if (category==null) {
+        res.status(400);
+        res.type('application/json');
+        res.send(`{"error_msg": "missing data"}`);
+        return;
+    } else {
+        actor.updateCategory(id,category, (err,result)=> {
+            // Server Error (500)
+            if (err) {
+                // Record of given category does not exist (204)
+                if (err=='Category does not exist') {
+                    res.status(204);
+                    res.type('application/json');
+                    res.send();
+                } else {
+                    res.status(500);
+                    res.type('application/json');
+                    res.send(`{"error_msg":"Internal server error"}`);
+                }
+            } else {
+                // Successful Case (200)
+                if (result.affectedRows==1) {
+                    res.status(200);
+                    res.type('application/json');
+                    res.send(`{"success_msg": "record updated"}`);
+                // Record of given actor_id cannot be found (204)
+                } else {
+                    res.status(204);
+                    res.type('application/json');
+                    res.send();
+                }
+            }
+        });
+    }
+
 });
 
 

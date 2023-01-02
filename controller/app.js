@@ -7,7 +7,10 @@ Admin Number: P2214452
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
-const actor = require('../model/actor.js');
+const actors = require('../model/actors.js');
+const film_categories = require('../model/film_categories.js');
+const customer = require('../model/customer.js');
+const staff = require('../model/staff.js');
 
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 app.use(urlencodedParser);
@@ -16,7 +19,7 @@ app.use(bodyParser.json());
 // Endpoint 1
 app.get('/actors/:actor_id', (req,res)=> {
     const actor_id = req.params.actor_id;
-    actor.getActor(actor_id, (err,result)=> {
+    actors.getActor(actor_id, (err,result)=> {
         // Server Error (500)
         if (err) {
             res.status(500);
@@ -57,7 +60,7 @@ app.get('/actors', (req,res) => {
         offset = parseInt(req.query.offset); 
     }
     
-    actor.listActors(limit,offset, (err,result) => {
+    actors.listActors(limit,offset, (err,result) => {
         // Server Error (500)
         if (err) {
             res.status(500);
@@ -91,7 +94,7 @@ app.post('/actors',(req,res)=> {
         return;
     }
 
-    actor.insertActor(first_name,last_name, (err,result) => {
+    actors.insertActor(first_name,last_name, (err,result) => {
         // Server Error (500)
         if (err) {
             res.status(500);
@@ -127,7 +130,7 @@ app.put('/actors/:actor_id',(req,res)=> {
         return;
     }
 
-    actor.updateActor(first_name,last_name,id, (err,result)=> {
+    actors.updateActor(first_name,last_name,id, (err,result)=> {
         // Server Error (500)
         if (err) {
             res.status(500);
@@ -152,7 +155,7 @@ app.put('/actors/:actor_id',(req,res)=> {
 // Endpoint 5
 app.delete('/actors/:actor_id', (req,res)=> {
     const id = req.params.actor_id;
-    actor.deleteActor(id, (err,result)=> {
+    actors.deleteActor(id, (err,result)=> {
         // Server Error (500)
         if (err) {
             res.status(500);
@@ -177,7 +180,7 @@ app.delete('/actors/:actor_id', (req,res)=> {
 // Endpoint 6
 app.get('/film_categories/:category_id/films', (req,res) => {
     const id = req.params.category_id;
-    actor.getFilmByCategory(id, (err,result)=> {
+    film_categories.getFilmByCategory(id, (err,result)=> {
         // Server Error (500)
         if (err) {
             res.status(500);
@@ -199,7 +202,7 @@ app.get('/customer/:customer_id/payment', (req,res) => {
     const {start_date,end_date} = req.query;
     let total=0;
 
-    actor.getPaymentBtwnDates(id,start_date,end_date, (err,result)=> {
+    customer.getPaymentBtwnDates(id,start_date,end_date, (err,result)=> {
         // Server Error (500)
         if (err) {
             res.status(500);
@@ -235,7 +238,7 @@ app.post('/customers',(req,res)=> {
         res.send(`{"error_msg": "missing data"}`);
         return;
     } else {
-        actor.insertCustomer(store_id,first_name,last_name,email,address, (err,result)=> {
+        customer.insertCustomer(store_id,first_name,last_name,email,address, (err,result)=> {
             if (err) {
                 // User tries to create a record with duplicate email address (409)
                 if (err.code=='ER_DUP_ENTRY') {
@@ -274,7 +277,7 @@ app.post("/staff", (req, res) => {
         res.send(`{"error_msg": "missing data"}`);
         return;
     } else {
-        actor.insertStaff(first_name,last_name,email,store_id,username,password,address, (err,result)=> {
+        staff.insertStaff(first_name,last_name,email,store_id,username,password,address, (err,result)=> {
             if (err) {
                 // User tries to create a record with duplicate username (409)
                 if (err=='ER_DUP_ENTRY') {
@@ -308,7 +311,7 @@ app.put("/film/:film_id/category", (req, res) => {
         res.send(`{"error_msg": "missing data"}`);
         return;
     } else {
-        actor.updateCategory(id,category, (err,result)=> {
+        film_categories.updateCategory(id,category, (err,result)=> {
             // Server Error (500)
             if (err) {
                 // Record of given category does not exist (204)
